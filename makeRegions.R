@@ -8,10 +8,11 @@ ozone.2008 <- fread("O3Surface_12km_2008.csv")
 
 # get unique x/y's for each year
 ozone.2008.xy <- unique(ozone.2008, by = c("Column", "Row"))
-ozone.2008.xy <- arrange(ozone.2008.xy, Column, Row)
+
 
 # get unique columns
 columns <- unique(ozone.2008.xy$Column)
+rows <- unique(ozone.2008.xy$Row)
 
 # make data.table of regions and merge with ozone.2008.xy
 regions.dt <- data.table(Column = columns, region = rep(1:10, each = length(columns)/10)[1:length(columns)])
