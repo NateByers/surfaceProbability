@@ -53,73 +53,96 @@ pgev(q = 75, loc = fit.test.cell$mle[1], scale = fit.test.cell$mle[2], shape = f
 library(parallel)
 library(ismev)
 library(dplyr)
+library(data.table)
+library(parallel)
+library(lubridate)
 
 # this function takes a named data table and fits an extreme value distribution
-fitEVD <- function(cell.data.table, type = c("rth largest", "threshold")){
+fitEVD <- function(cell, type = c("rth largest", "threshold"), region){
   if(type[1] == "rth largest"){
+    # read in .csv file
+    column <- strsplit(cell, "_")[[1]][1]
+    row <- strsplit(cell, "_")[[1]][2]
+    count <- strsplit(cell, "_")[[1]][3]
+    csv.file <- file <- paste0("EVDs/", region, "/col", column, "row", row, ".csv")
+    cell.df <- read.csv(csv.file)
     
     # add a year column
-    cell.data.table[, Year:=year(Date)]
+    year <-  as.Date(cell.df$Date, format = "%m/ %d/ %Y")
+    cell.df <- data.frame(cell.df, Year = year(year))
     # order by year and descending predicted values
-    cell.data.table <- arrange(cell.data.table, Year, desc(contains("pred")))
+    cell.df <- arrange(cell.df, Year, desc(contains("pred")))
     # group by year
-    cell.data.table <- group_by(cell.data.table, Year)
+    cell.df <- group_by(cell.df, Year)
     # create table of top 4 values per year
-    cell.summary <- summarize(cell.data.table, r1 = first(O3_pred), r2 = nth(O3_pred, 2),
+    cell.summary <- summarize(cell.df, r1 = first(O3_pred), r2 = nth(O3_pred, 2),
                               r3 = nth(O3_pred, 3), r4 = nth(O3_pred, 4))
     # fit an extreme value distribution of the 4 largest values
-    rlarg.fit(as.data.frame(data)[, -1])
+    fit <- rlarg.fit(cell.summary[, -1])
+    
+    # save as .rda file
+    rda.file <- file <- paste0("EVDs/", region, "/col", column, "row", row, ".rda")
+    save(fit, file = rda.file)
+    cat("Fit ", count, " EVDs\n")
+    unlink(csv.file)
+    rm(cell.data.table)
+    gc()
   }
 }
 
-getEVDfits <- function(regional.data.table, method = c("rth largest", "threshold"),
+getEVDfits <- function(regional.data.table, region, method = c("rth largest", "threshold"),
                        parallel = T, clusters = (detectCores() - 1)){
+  # get time
+  then <- Sys.time()
   
-  # create vector of Column_Row to identify cells
-  cells <- paste(sprintf("%03d", regional.data.table$Column), 
-                         sprintf("%03d", regional.data.table$Column), sep = "_")
+  # create vector of Column_Row_Count to identify cells and keep track of progress
+  cells <- unique(subset(regional.data.table, select = c("Column", "Row")))
+  cells <- paste(cells$Column, cells$Row, 1:dim(cells)[1], sep = "_")  
+  
+  # split up the data into text files
+  lapply(cells, function(col_row_count, data){
+    column <- strsplit(col_row_count, "_", fixed = T)[[1]][1]       # get the column number
+    row <- strsplit(col_row_count, "_", fixed = T)[[1]][2]          # get the row number
+    count <- strsplit(col_row_count, "_", fixed = T)[[1]][3]        # get the count
+    sub.data <- subset(data, Column == column & Row == row)   # subset down to the daily values for that cell 
+    file <- paste0("EVDs/", region, "/col", column, "row", row, ".csv") # create file name
+    write.csv(sub.data, file = file)                           # save as .csv file
+    rm(sub.data)
+    cat("Written ", count, " files\n")
+  }, data = regional.data.table)
+  
+  print("all csv files written")
+  print("fitting EVDs")
   
   if(parallel == T){
     
     # set the number of clusters
     cl <- makeCluster(clusters)
     
-    # use multiple cores to split up the data into a list of data tables
-    table.list <- parLapply(cl, cells, function(x){
-      column <- strsplit(x, "_", fixed = T)[[1]][1] # get the column number
-      row <- strsplit(x, "_", fixed = T)[[1]][2]    # get the row number
-      subset(data, Column == column & Row == row)   # subset down to the daily values for that cell
-    }, data = regional.data.table)
+    clusterEvalQ(cl, {library(lubridate); library(dplyr); library(ismev)})
     
-    # use multiple cores to fit an extreme value distribution to tables
-    fit.list <- parLapply(cl, table.list, fitEVD, type = method[1])
+    # use multiple cores to fit an extreme value distribution to tables and save objects as .rda files
+    parLapply(cl, cells, fitEVD, type = method[1], region = region)
     
     stopCluster(cl)
     
-    # attach names to the list members
-    names(fit.list) <- cells
-    
-    fit.list
-    
   } else {
-    # split up the data into a list of data tables
-    tables.list <- lapply(cells, function(x){
-      column <- strsplit(x, "_", fixed = T)[[1]][1] # get the column number
-      row <- strsplit(x, "_", fixed = T)[[1]][2]    # get the row number
-      subset(data, Column == column & Row == row)   # subset down to the daily values for that cell 
-    }, data = regional.data.table)
     
-    # fit an extreme value distribution to tables
-    fit.list <- lapply(table.list, fitEVD, type = method[1])
+    # fit an extreme value distribution to tables and save object as .rda file
+    lapply(cells, fitEVD, type = method[1], region = region)
     
-    # attach names to the list members
-    names(fit.list) <- cells
-    
-    fit.list
   }
-  
+  # print time difference
+  then - Sys.time()
 }
 
+# read in region 1
 region1.dt <- fread("O3Surface_12km_region_1.csv")
-region1.fits <- getEVDfits(region1.dt)
-Sys.time()
+
+# get test subset
+cells <- unique(subset(region1.dt, select = c("Column", "Row", "Longitude", "Latitude")))
+sub.cells <- cells[1:60, ]
+sub.region1.dt <- merge(region1.dt[, !"V1", with = F], sub.cells, by = c("Column", "Row", "Longitude", "Latitude"))
+
+getEVDfits(sub.region1.dt, region = "region1", clusters = 10)
+
