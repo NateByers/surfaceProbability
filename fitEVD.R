@@ -1,49 +1,3 @@
-# get some time series to work with 
-library(data.table)
-dt <- fread("O3Surface_12km_region_1.csv")
-cells <- unique(subset(dt, select = c("Column", "Row", "Longitude", "Latitude")))
-columns <- unique(subset(dt, select = "Column"))
-rows <- unique(subset(dt, select = "Row"))
-
-
-library(maps)
-map("state")
-points(cells$Longitude, cells$Latitude, pch = 20)
-
-test.cell <- subset(cells, Column == 55 & Row == 150)
-map("state")
-points(test.cell$Longitude, test.cell$Latitude, pch = 20)
-
-test.cell.daily <- subset(dt, Column == test.cell$Column & Row == test.cell$Row)
-test.cell.daily <- test.cell.daily[, Date:=as.IDate(Date, format = "%m/ %d/ %Y")]
-plot(O3_pred ~ Date, data = test.cell.daily)
-abline(h = c(75, 65), col = c("red", "blue"))
-
-library(extRemes)
-fit <- fevd(O3_pred, data = test.cell.daily, threshold = 65, # there are no values over 75
-            type="PP",
-            time.units = "365/year", 
-            units = "ppb", 
-            verbose = TRUE)
-
-
-library(ismev)
-data(venice)
-fit.rlarg <- rlarg.fit(venice[, -1])
-rlarg.diag(fit.rlarg)
-library(evd)
-# probability that rth largest value is above q
-pgev(q = 100, loc = fit.rlarg$mle[1], scale = fit.rlarg$mle[2], shape = fit.rlarg$mle[3],
-     lower.tail = F)
-
-library(dplyr)
-test.cell.daily[, Year:=year(Date)]
-test.cell.daily <- arrange(test.cell.daily, Year, desc(O3_pred))
-test.cell.rlarg <- group_by(test.cell.daily, Year)
-test.cell.rlarg <- summarize(test.cell.rlarg, r1 = first(O3_pred), r2 = nth(O3_pred, 2),
-                             r3 = nth(O3_pred, 3), r4 = nth(O3_pred, 4))
-
-fit.test.cell <- rlarg.fit(as.data.frame(test.cell.rlarg)[, -1])
 # probability that 4th largest value is above 75
 pgev(q = 75, loc = fit.test.cell$mle[1], scale = fit.test.cell$mle[2], shape = fit.test.cell$mle[3],
      lower.tail = F)
@@ -57,41 +11,46 @@ library(data.table)
 library(parallel)
 library(lubridate)
 
+
+# create regional subdirectories under the EVDs/ folder
+lapply(1:10, function(x) dir.create(paste0("O3EVDs/region", x)))
+
 # this function takes a named data table and fits an extreme value distribution
 fitEVD <- function(cell, type = c("rth largest", "threshold"), pollutant, region){
+  pollutant.column <- paste(pollutant, "pred", sep = "_")
   if(type[1] == "rth largest"){
     # read in .csv file
     column <- strsplit(cell, "_")[[1]][1]
     row <- strsplit(cell, "_")[[1]][2]
     count <- strsplit(cell, "_")[[1]][3]
-    csv.file <- file <- paste0("EVDs/", region, "/col", column, "row", row, ".csv")
+    csv.file <- file <- paste0(pollutant, "EVDs/", region, "/col", column, "row", row, ".csv")
     cell.dt <- fread(csv.file)
     
-    # cell.dt <- fread("EVDs/region1/col24row19.csv")
+    # cell.dt <- fread("O3EVDs/region1/col24row19.csv")
     # pollutant <- "O3_pred"
     
     # add a year column
     cell.dt[, Year := year(as.Date(Date, format = "%m/ %d/ %Y"))]
     
     # order by year and descending predicted values
-    call <- substitute(cell.dt <- arrange(cell.dt, Year, desc(pollutant)), 
-                       list(pollutant = as.name(pollutant)))
+    call <- substitute(cell.dt <- arrange(cell.dt, Year, desc(pollutant.column)), 
+                       list(pollutant.column = as.name(pollutant.column)))
     eval(call) # this is necessary to pass variable name to the dplyr function
     
     # group by year
     cell.dt <- group_by(cell.dt, Year)
     
     # create table of top 4 values per year
-    call <- substitute(cell.summary <- summarize(cell.dt, r1 = first(pollutant), r2 = nth(pollutant, 2),
-                                                 r3 = nth(pollutant, 3), r4 = nth(pollutant, 4)), 
-                       list(pollutant = as.name(pollutant)))
+    call <- substitute(cell.summary <- summarize(cell.dt, r1 = first(pollutant.column), r2 = nth(pollutant.column, 2),
+                                                 r3 = nth(pollutant.column, 3), r4 = nth(pollutant.column, 4)), 
+                       list(pollutant.column = as.name(pollutant.column)))
     eval(call)  # this is necessary to pass variable name to the dplyr function
     
     # fit an extreme value distribution of the 4 largest values
     fit <- rlarg.fit(cell.summary[, Year := NULL])
     
     # save as .rda file
-    rda.file <- file <- paste0("EVDs/", region, "/col", column, "row", row, ".rda")
+    rda.file <- file <- paste0(pollutant, "EVDs/", region, "/col", column, "row", row, ".rda")
     save(fit, file = rda.file)
     cat("Fit ", count, " EVDs\n")
     unlink(csv.file)
@@ -100,10 +59,13 @@ fitEVD <- function(cell, type = c("rth largest", "threshold"), pollutant, region
   }
 }
 
-getEVDfits <- function(regional.data.table, pollutant = c("O3_pred"), region, method = c("rth largest", "threshold"),
+getEVDfits <- function(regional.data.file, pollutant = "O3", region, 
+                       method = c("rth largest", "threshold"),
                        parallel = T, clusters = (detectCores() - 1)){
   # get time
   then <- Sys.time()
+  
+  regional.data.table <- fread(regional.data.file)
   
   # create vector of Column_Row_Count to identify cells and keep track of progress
   cells <- unique(subset(regional.data.table, select = c("Column", "Row")))
@@ -118,7 +80,7 @@ getEVDfits <- function(regional.data.table, pollutant = c("O3_pred"), region, me
     row <- as.integer(strsplit(col_row_count, "_", fixed = T)[[1]][2])          # get the row number
     count <- strsplit(col_row_count, "_", fixed = T)[[1]][3]        # get the count
     sub.data <- data[list(column, row)]   # subset down to the daily values for that cell 
-    file <- paste0("EVDs/", region, "/col", column, "row", row, ".csv") # create file name
+    file <- paste0(pollutant, "EVDs/", region, "/col", column, "row", row, ".csv") # create file name
     write.csv(sub.data, file = file)                           # save as .csv file
     rm(sub.data)
     cat("Written ", count, " files\n")
@@ -149,18 +111,17 @@ getEVDfits <- function(regional.data.table, pollutant = c("O3_pred"), region, me
   then - Sys.time()
 }
 
-# read in region 1
-region1.dt <- fread("O3Surface_12km_region_1.csv")
+getEVDfits("O3Surface_12km_region_1.csv", region = "region1")
+getEVDfits("O3Surface_12km_region_2.csv", region = "region2")
+getEVDfits("O3Surface_12km_region_3.csv", region = "region3")
+getEVDfits("O3Surface_12km_region_4.csv", region = "region4")
+getEVDfits("O3Surface_12km_region_5.csv", region = "region5")
+getEVDfits("O3Surface_12km_region_6.csv", region = "region6")
+getEVDfits("O3Surface_12km_region_7.csv", region = "region7")
+getEVDfits("O3Surface_12km_region_8.csv", region = "region8")
+getEVDfits("O3Surface_12km_region_9.csv", region = "region9")
+getEVDfits("O3Surface_12km_region_10.csv", region = "region10")
 
-# get test subset
-cells <- unique(subset(region1.dt, select = c("Column", "Row", "Longitude", "Latitude")))
-sub.cells <- cells[1:60, ]
-sub.region1.dt <- merge(region1.dt[, !"V1", with = F], sub.cells, by = c("Column", "Row", "Longitude", "Latitude"))
-
-getEVDfits(sub.region1.dt, region = "region1", clusters = 10)
-
-
-getEVDfits(region1.dt, region = "region1")
 
 
 
@@ -171,18 +132,52 @@ library(dplyr)
 library(data.table)
 library(lubridate)
 
-fitEVD <- function(){
-  # fit a single EVD
+fitEVD <- function(cell, data, pollutant, method){
+  # read in .csv file and get column, row, and count
+  column <- strsplit(cell, "_")[[1]][1]
+  row <- strsplit(cell, "_")[[1]][2]
+  count <- strsplit(col_row_count, "_", fixed = T)[[1]][3] 
+  # subset the data table
+  data <- data[list(column, row)]
+  # order by year and descending predicted values
+  call <- substitute(data <- arrange(data, Year, desc(pollutant)), 
+                     list(pollutant = as.name(pollutant)))
+  eval(call) # this is necessary to pass variable name to the dplyr function
+  
+  if(method == "rth largest"){
+    # fit an extreme value distribution of the 4 largest values
+    fit <- rlarg.fit(cell.summary[, Year := NULL])
+  }
+  
+  # save as .rda file
+  rda.file <- file <- paste0("EVDs/col", column, "row", row, ".rda")
+  save(fit, file = rda.file)
+  rm(data)
+  # write progress to text file
+  writeLines(paste0(count, "\n"), "progress.txt")
+  gc()
 }
 
-lapplyEVDS <- function(){
-  data <- fread()
-  column_row <- select()
+lapplyEVDs <- function(file, pollutant, method = method){
+  # read in the regional file
+  data <- fread(file)
+  # create vector identifying cells and counting progress
+  column_row_count <- paste(data$Column, data$Row, 1:dim(data)[1], sep = "_")
   
+  # add a year column
+  data[, Year := year(as.Date(Date, format = "%m/ %d/ %Y"))]
+  
+  # set the key for fast subsetting
+  data <- setkey(data, Column, Row)
+  
+  lapply(column_row_count, fitEVD, data = data, pollutant = pollutant, method = method)
   
 }
 
-getEVDfits <- function(regional.files, parallel = T){
+getEVDfits <- function(regional.files, pollutant = c("O3_pred"), 
+                       method = c("rth largest", "threshold"), parallel = T,
+                       clusters = length(regional.files)){
+  then <- Sys.time
   
   if(parallel == T){
     # take list of files and parLapply
@@ -190,19 +185,24 @@ getEVDfits <- function(regional.files, parallel = T){
     # set the number of clusters
     cl <- makeCluster(clusters)
     
-    # load libraries in each cluster
-    clusterEvalQ(cl, {library(data.table); library(lubridate); library(dplyr); library(ismev)})
+    # load libraries and functions in each cluster
+    clusterEvalQ(cl, {library(data.table)
+                      library(lubridate)
+                      library(dplyr)
+                      library(ismev)})
     
-    parLapply(cl, regional.files, lapplyEVDs)
+    parLapply(cl, regional.files, lapplyEVDs, pollutant = pollutant[1], method = method[1])
     
     stopCluster(cl)
   }
   
+  print(then - Sys.time)
 }
 
 
+regional.files <- grep("O3Surface_12km_region", list.files(), fixed = T, value = T)
 
-
+getEVDfits(regional.files)
 
 
 
