@@ -4,7 +4,7 @@ downloadSurface <- function(file, year){
   temp <- tempfile()
   download.file(file, temp)
   unzip(temp)
-  unlink(temp)
+  file.remove(temp)
 }
 
 ozone.link <- "http://www.epa.gov/heasd/documents/cdc/HBM/ozone/"
@@ -20,12 +20,11 @@ library(data.table)
 library(dplyr)
 
 readAndProcessOzone <- function(file){
-  
   data <- fread(file)
   data <- group_by(data, Column, Row)
-  data <- summarize(data, first_high = first(O3_pred), second_high = nth(O3_pred),
+  data <- summarize(data, first_high = first(O3_pred), second_high = nth(O3_pred, 2),
                     third_high = nth(O3_pred, 3), fourth_high = nth(O3_pred, 4))
-  write.csv(data, file = file, row.names = F)
+  write.csv(data, file = paste0("processed_", file), row.names = F)
   rm(data)
   gc()
 }

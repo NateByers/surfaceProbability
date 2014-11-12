@@ -89,8 +89,10 @@ grid.census.ID.df <- merge(grid.census.df, census.df, all.x = TRUE)
 # read in CDC data
 ozone.2009.2011 <- read.csv("ozone_max_209_11.csv", 
                             colClasses = c("factor", "integer", "numeric", "integer"))
+ozone.2009.2011[, "Max"] <- paste0("r", ozone.2009.2011$Max)
 # change from long to wide
 library(reshape2)
 ozone.2009.2011 <- dcast(ozone.2009.2011, CTFIPS + year ~ Max, value.var = "Ozone")
 # merge CDC data with grid locations
 grid.census.ID.data.df <- merge(grid.census.ID.df, ozone.2009.2011, all.x = T)
+write.csv(grid.census.ID.data.df, file = "cdc_ozone_converted.csv")
