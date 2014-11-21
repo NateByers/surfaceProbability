@@ -18,7 +18,7 @@ makeCensusTractSubsets <- function(census.tract, pollutant, data){
   save(data, file = paste0("CensusTractSubsets/pol_", pollutant, "_CT_", census.tract, ".rdata"))
 }
 
-
+# to get merged data, source downloadDownscaler.R and mergeDownscaler.R scripts
 merged.predictions.dt <- fread("merged_Predictions_CT_2007_2011.csv", integer64 = "character")
 CT <- unique(merged.predictions.dt$CTFIPS)
 # make ozone census tract subsets
@@ -73,11 +73,26 @@ ozone.files <- files[grepl("ozone", files, fixed = TRUE)]
 
 # Get ozone probabilities
 cl <- makeCluster(detectCores())
-
 clusterEvalQ(cl, {library(data.table); library(ismev); library(evd)})
-
 ozone.probabilities.75 <- parSapply(cl, ozone.files, fitEVD, rth = 4, threshold = 75)
-
 stopCluster(cl)
+# make data frame and save as .csv file
+ct.ozone <- regmatches(names(ozone.probabilities.75), regexpr("\\d+", names(ozone.probabilities.75)))
+write.csv(data.frame(CTFIPS = ct.ozone, prob = ozone.probabilities.75),
+          file = "ozoneProbabilities75ppbThreshold.csv")
 
-save(ozone.probabilities.75, file = "ozoneProbabilities75ppbThreshold.rdata")
+# Get PM files
+pm.files <- files[grepl("PM", files, fixed = TRUE)]
+
+# Get PM probabilities
+cl <- makeCluster(detectCores())
+clusterEvalQ(cl, {library(data.table); library(ismev); library(evd)})
+then <- Sys.time()
+pm.probabilities.35 <- parSapply(cl, pm.files, fitEVD, rth = 7, threshold = 35)
+Sys.time() - then
+stopCluster(cl)
+# make data frame and save as .csv file
+ct.pm <- regmatches(names(pm.probabilities.35), regexpr("\\d+", names(pm.probabilities.35)))
+write.csv(data.frame(CTFIPS = ct.pm, prob = pm.probabilities.35),
+          file = "pmProbabilities35ug_m3Threshold.csv")
+
