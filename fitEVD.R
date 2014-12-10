@@ -1,6 +1,3 @@
-# Create CensusTractSubsets/ directory
-dir.create("CensusTractSubsets")
-
 library(ismev)
 library(evd)
 library(data.table)
@@ -8,7 +5,13 @@ library(bit64)
 library(dplyr)
 library(pbapply)
 library(parallel)
+library(mail)
 
+# Create CensusTractSubsets/ directory
+dir.create("CensusTractSubsets")
+# Create EVD directories
+directories <- c(paste0("ozone", c(75, 70, 65), "EVDs"))
+lapply(c("PM35EVDs", directories), dir.create)
 
 # This function takes a data.table, subsets down to the data for a pollutant/census-tract, 
 # and saves it as an .rdata file
@@ -45,19 +48,19 @@ Sys.time() - then
 close(pb)
 
 
-
-
-
-# This function reads in an .rdata file, fits an EVD, and returns a probability
-# of the rth value exceeding the threshold
-fitEVD <- function(rdata.file, rth, threshold){
-  # rdata.file <- "pol_ozone_CT_1001021000.rdata"
-  # rth <- 4
-  # threshold <- 75
+# This function reads in an .rdata file, fits an EVD, saves the fitted object,
+# and returns a probability of the rth value exceeding the threshold
+fitEVD <- function(rdata.file, rth, threshold, object.folder){
+  
   load(paste0("CensusTractSubsets/", rdata.file))
   data <- data[order(year)]
+  
   # fit an extreme value distribution of the 4 largest values
   fit <- rlarg.fit(data[, paste0("r", 1:rth), with = FALSE])
+  
+  # save the object
+  save(fit, file = paste0(object.folder, "/", strsplit(rdata.file, ".", fixed = T)[[1]][1],
+                          "_", threshold, ".rdata"))
   
   # probability that rth largest value is above threshold
   prob <- pgev(q = threshold, loc = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3],
@@ -71,15 +74,41 @@ files <- list.files("CensusTractSubsets")
 # Get ozone files
 ozone.files <- files[grepl("ozone", files, fixed = TRUE)]
 
-# Get ozone probabilities
+# Get ozone probabilities with 75 threshold
 cl <- makeCluster(detectCores())
 clusterEvalQ(cl, {library(data.table); library(ismev); library(evd)})
-ozone.probabilities.75 <- parSapply(cl, ozone.files, fitEVD, rth = 4, threshold = 75)
+ozone.probabilities.75 <- parSapply(cl, ozone.files, fitEVD, rth = 4, 
+                                    threshold = 75, object.folder = "ozone75EVDs")
 stopCluster(cl)
 # make data frame and save as .csv file
 ct.ozone <- regmatches(names(ozone.probabilities.75), regexpr("\\d+", names(ozone.probabilities.75)))
 write.csv(data.frame(CTFIPS = ct.ozone, prob = ozone.probabilities.75),
           file = "ozoneProbabilities75ppbThreshold.csv")
+
+# Get ozone probabilities with 70 threshold
+cl <- makeCluster(detectCores())
+clusterEvalQ(cl, {library(data.table); library(ismev); library(evd)})
+ozone.probabilities.70 <- parSapply(cl, ozone.files, fitEVD, rth = 4, 
+                                    threshold = 70, object.folder = "ozone70EVDs")
+stopCluster(cl)
+# make data frame and save as .csv file
+ct.ozone <- regmatches(names(ozone.probabilities.70), regexpr("\\d+", names(ozone.probabilities.70)))
+write.csv(data.frame(CTFIPS = ct.ozone, prob = ozone.probabilities.70),
+          file = "ozoneProbabilities70ppbThreshold.csv")
+
+# Get ozone probabilities with 65 threshold
+cl <- makeCluster(detectCores())
+clusterEvalQ(cl, {library(data.table); library(ismev); library(evd)})
+then <- Sys.time()
+ozone.probabilities.65 <- parSapply(cl, ozone.files, fitEVD, rth = 4, 
+                                    threshold = 65, object.folder = "ozone65EVDs")
+elapsed <- then - Sys.time()
+stopCluster(cl)
+# make data frame and save as .csv file
+ct.ozone <- regmatches(names(ozone.probabilities.65), regexpr("\\d+", names(ozone.probabilities.65)))
+write.csv(data.frame(CTFIPS = ct.ozone, prob = ozone.probabilities.65),
+          file = "ozoneProbabilities65ppbThreshold.csv")
+
 
 # Get PM files
 pm.files <- files[grepl("PM", files, fixed = TRUE)]

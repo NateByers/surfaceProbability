@@ -1,5 +1,4 @@
 # download downscaler data 2007-2008
-
 downloadSurface <- function(file){
   temp <- tempfile()
   download.file(file, temp)
@@ -24,7 +23,7 @@ library(dplyr)
 readAndProcessDownscaler <- function(file){
   # file = "Predictions07ozone-Census2010edited.csv"
   pollutant <- strsplit(file, "-", fixed = TRUE)[[1]][1]
-  pollutant <- strsplit(pollutant, "[7-8]")[[1]][2]
+  pollutant <- strsplit(pollutant, "[1-8]")[[1]][2]
   data <- fread(file)
   names(data) <- c("Date", "CTFIPS", "Latitude", "Longitude", "pred", "se")
   data <- group_by(data, CTFIPS, Latitude, Longitude)
