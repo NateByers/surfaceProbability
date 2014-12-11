@@ -29,11 +29,15 @@ census.tracts.spolydf <- census.tracts.spolydf[, c("GEOID10", "ozone_prob_75")]
 library(rgdal)
 census.tracts.spolydf <- spTransform(census.tracts.spolydf, CRS(leaflet.proj))
 
+# make function for creating colors for maps
+myColors <- colorRampPalette(c("#00E400", "#FFFF00", "#FF7E00", "#FF0000"))
+
+
 # Create ozone map with 75 ppb threshold
-ozone.75.plot <- spplot(census.tracts.spolydf, "ozone_prob_75", col.regions=terrain.colors(100),
-                        col = "transparent")
+ozone.75.plot <- spplot(census.tracts.spolydf, "ozone_prob_75", col.regions = myColors(100),
+                        colorkey = FALSE, col = "transparent")
 then <- Sys.time()
-png(filename = "OzoneProb75ppbCT.png", width = 6000, height = 6000)
+png(filename = "Ozone_Prob_75_ppb_CT.png", width = 6000, height = 6000)
 plot(ozone.75.plot)
 then - Sys.time()
 dev.off()
@@ -71,8 +75,8 @@ census.tracts.spolydf <- merge(census.tracts.spolydf,
                                ozone.prob.65.df[, c("GEOID10", "ozone_prob_65")])
 
 # Save pm map
-pm.35.plot <- spplot(census.tracts.spolydf, "pm_prob_35", col.regions=terrain.colors(100),
-                        col = "transparent")
+pm.35.plot <- spplot(census.tracts.spolydf, "pm_prob_35", col.regions=myColors(100),
+                     colorkey = FALSE, col = "transparent")
 then <- Sys.time()
 png(filename = "PM_Prob_35_ugperm3_CT.png", width = 6000, height = 6000)
 plot(pm.35.plot)
@@ -81,8 +85,8 @@ dev.off()
 
 
 # Save ozone 70 ppb map
-ozone.70.plot <- spplot(census.tracts.spolydf, "ozone_prob_70", col.regions=terrain.colors(100),
-                     col = "transparent")
+ozone.70.plot <- spplot(census.tracts.spolydf, "ozone_prob_70", col.regions = myColors(100),
+                        colorkey = FALSE, col = "transparent")
 then <- Sys.time()
 png(filename = "Ozone_Prob_70_ppb_CT.png", width = 6000, height = 6000)
 plot(ozone.70.plot)
@@ -90,8 +94,8 @@ then - Sys.time()
 dev.off()
 
 # Save ozone 65 ppb map
-ozone.65.plot <- spplot(census.tracts.spolydf, "ozone_prob_65", col.regions=terrain.colors(100),
-                        col = "transparent")
+ozone.65.plot <- spplot(census.tracts.spolydf, "ozone_prob_65", col.regions = myColors(100),
+                        colorkey = FALSE, col = "transparent")
 then <- Sys.time()
 png(filename = "Ozone_Prob_65_ppb_CT.png", width = 6000, height = 6000)
 plot(ozone.65.plot)
