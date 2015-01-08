@@ -5,6 +5,7 @@ These files create surface probability maps for the [NetAssessApp](https://githu
 # Maps
 The maps give an estimate of the probability of pollution levels exceeding a threshold in a given year. For example, the plot below shows the estimated probability for areas in the continental US exceeding ground level ozone levels of 75 ppb at least one day in a year (8-hour maximum):
 
+![legend](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/probLegend.png)
 ![Image](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/o3_75.png)
 
 # Data and Methods
