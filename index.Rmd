@@ -9,5 +9,13 @@ output:
 This page provides documentation for the surface probability maps used in the [NetAssessApp](https://github.com/LADCO/NetAssessApp).
 
 ## Background
-The EPA requires state agencies to assess their air pollution monitoring network every 5 years (40 CFR part 58.10(d)). The next network assessment is due on July 1, 2015. The [NetAssessApp](https://github.com/LADCO/NetAssessApp) was developed by [LADCO](http://www.ladco.org/) and state enironmental agencies in EPA Region 5 as a resource for doing network assessment analyses. The online tool was designed as an attempt to update the network assessment tools provided by the EPA for the last network assessment ([see EPA's site for network assessment tools and guidance](http://www.epa.gov/ttnamti1/network-assessment.html)).
+The US EPA requires state agencies to assess their air pollution monitoring networks every 5 years (40 CFR part 58.10(d)). The next network assessment is due on July 1, 2015. The [NetAssessApp](https://github.com/LADCO/NetAssessApp) was developed by [LADCO](http://www.ladco.org/) and state enironmental agencies in EPA Region 5 as a resource for doing network assessment analyses. The online tool was designed as an attempt to update the network assessment tools provided by the EPA for the last network assessment ([see EPA's site for network assessment tools and guidance](http://www.epa.gov/ttnamti1/network-assessment.html)).
 
+## Surface Probability Maps
+One objective of the network assessment is to determine if new sites are needed. To help make that decision, it is helpful to have some estimation of the extreme pollution levels in areas where no monitors currently exist. The [NetAssessApp](https://github.com/LADCO/NetAssessApp) provides ozone and PM<sub>2.5</sub> maps of the continental US that can be used to make spatial comparisons regarding the probability of daily values exceeding a certain threshold. For example, the plot below shows the estimated probability for areas in the continental US exceeding ground level ozone levels of 75 ppb at least one day in a year (8-hour maximum):
+
+![legend](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/probLegend.png)
+![ozone75ppb](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/o3_75.png)
+
+
+To clarify, this 
