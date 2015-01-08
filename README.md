@@ -5,7 +5,7 @@ These files create surface probability maps for the [NetAssessApp](https://githu
 # Maps
 The maps give an estimate of the probability of pollution levels exceeding a threshold in a given year. For example, the plot below shows the estimated probability for areas in the continental US exceeding ground level ozone levels of 75 ppb at least one day in a year (8-hour maximum):
 
-![Image](https://raw.githubusercontent.com/LADCO/NetAssessApp/8e30d6505a3dbf60d2d36430fb63004d8510e30d/www/images/OzoneProb75ppb.png)
+![Image](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/o3_75.png)
 
 # Data and Method
 The maps were made using [EPA/CDC downscaler data](http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html). The files ```downloadDownscaler.R``` and ```mergeDownscaler.R``` download and merge data from the EPA website and data obtained from the [CDC's Environmental Public Health Tracking program](http://ephtracking.cdc.gov/showHome.action). Downscaler data are daily estimates of ground level ozone and PM2.5 for every census tract in the continental US, 2007-2011. These are statistical estimates from "fusing" photochemical modeling data and ambient monitoring data using Bayesian space-time methods.
