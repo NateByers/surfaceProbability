@@ -18,4 +18,4 @@ One objective of the network assessment is to determine if new sites are needed.
 ![ozone75ppb](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/o3_75.png)
 
 
-To clarify, this 
+To clarify, this map does not show the probability of violating the [National Ambient Air Quality Standards (NAAQS)](http://www.epa.gov/oar/criteria.html). It provides information about the spatial distribution of the highest daily values for ground level ozone (i.e., not the probability of the 4th highest daily 8-hour maximum exceeding a threshold).
