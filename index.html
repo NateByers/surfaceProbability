@@ -61,6 +61,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <li><a href="#data">Data</a></li>
 <li><a href="#methods">Methods</a></li>
 <li><a href="#computation">Computation</a></li>
+<li><a href="#acknowledgments">Acknowledgments</a></li>
 </ul>
 </div>
 
@@ -78,13 +79,19 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </div>
 <div id="data" class="section level2">
 <h2>Data</h2>
-<p>The surface probability maps were created by using <a href="http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html">EPA/CDC downscaler data</a></p>
+<p>The surface probability maps were created by using <a href="http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html">EPA/CDC downscaler data</a>. Downscaler data are daily estimates of ground level ozone and PM<sub>2.5</sub> for every census tract in the continental US. These are statistical estimates from “fusing” photochemical modeling data and ambient monitoring data using Bayesian space-time methods. For more details on how the data were generated, see the <a href="http://www.epa.gov/nerlesd1/land-sci/lcb/pdf/DSMetadataAir_0612.pdf">meta data document</a> on the EPA website.</p>
+<p>Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5</sub> for the years 2007 and 2008 were obtained from the EPA webisite. Years 2009-2011 were obtained from the <a href="http://ephtracking.cdc.gov/showHome.action">CDC’s Environmental Public Health Tracking Program</a></p>
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
+<p>An extreme value distribution of fit for each census tract centroid in the continental United States. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract.</p>
 </div>
 <div id="computation" class="section level2">
 <h2>Computation</h2>
+</div>
+<div id="acknowledgments" class="section level2">
+<h2>Acknowledgments</h2>
+<p>We thank the the <a href="http://ephtracking.cdc.gov/showHome.action">CDC’s Environmental Public Health Tracking Program</a> for providing national downscaler data for the years 2009-2011.</p>
 </div>
 
 

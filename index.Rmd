@@ -31,7 +31,7 @@ Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5<
 
 ## Methods
 
-An extreme value distribution of fit for each census tract centroid in the continental United States. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract. These
+An extreme value distribution of fit for each census tract centroid in the continental United States. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract.
 
 ## Computation
 
