@@ -19,3 +19,13 @@ One objective of the network assessment is to determine if new sites are needed.
 
 
 To clarify, this map does not show the probability of violating the [National Ambient Air Quality Standards (NAAQS)](http://www.epa.gov/oar/criteria.html). It provides information about the spatial distribution of the highest daily values for ground level ozone (i.e., not the probability of the 4th highest daily 8-hour maximum exceeding a threshold).
+
+These maps are intended to be used as a spatial comparison and not for probability estimates for a single geographic point or area. The probability estimates alone should not be used to justify a new monitor. The maps should be used in conjunction with existing monitoring data. If a monitor has historically measured high values, then the probability map gives an indication of areas where you would expect to observe similar extreme values. This information, along with demographic and emissions data, could be used in a weight of evidence approach for proposing new monitor locations.
+
+## Data
+
+The surface probability maps were created by using 
+
+## Methods
+
+## Computation
