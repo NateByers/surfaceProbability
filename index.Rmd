@@ -24,8 +24,17 @@ These maps are intended to be used as a spatial comparison and not for probabili
 
 ## Data
 
-The surface probability maps were created by using 
+The surface probability maps were created by using [EPA/CDC downscaler data](http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html). Downscaler data are daily estimates of ground level ozone and PM<sub>2.5</sub> for every census tract in the continental US. These are statistical estimates from "fusing" photochemical modeling data and ambient monitoring data using Bayesian space-time methods. For more details on how the data were generated, see the [meta data document](http://www.epa.gov/nerlesd1/land-sci/lcb/pdf/DSMetadataAir_0612.pdf) on the EPA website.
+
+Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5</sub> for the years 2007 and 2008 were obtained from the EPA webisite. Years 2009-2011 were obtained from the [CDC's Environmental Public Health Tracking Program](http://ephtracking.cdc.gov/showHome.action)
+
 
 ## Methods
 
+An extreme value distribution of fit for each census tract centroid in the continental United States. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract. These
+
 ## Computation
+
+## Acknowledgments
+
+We thank the the [CDC's Environmental Public Health Tracking Program](http://ephtracking.cdc.gov/showHome.action) for providing national downscaler data for the years 2009-2011.
