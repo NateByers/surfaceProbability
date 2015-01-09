@@ -84,7 +84,10 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
-<p>An extreme value distribution of fit for each census tract centroid in the continental United States. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract.</p>
+<p>An extreme value distribution was fit for each census tract centroid in the continental United States. Specifically, a joint probability density function for the <span class="math">\(r\)</span> largest yearly values was estimated:</p>
+<p><span class="math">\[ f\left (x^{\left ( 1 \right )},...,x^{\left ( r \right )}  \right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\times \prod_{k=1}^{r}\sigma ^{-1}\left [ 1 + \xi \left ( \frac{x^{\left ( k \right )}-\mu }{\sigma}\right ) \right ]^{-\frac{1}{\xi}-1} \]</span></p>
+<p>where <span class="math">\(- \infty &lt; \mu &lt; \infty\)</span> and <span class="math">\(- \infty &lt; \xi &lt; \infty\)</span>; <span class="math">\(x ^ {\left (r \right )}\leq z ^ {\cdots \left (r-1 \right )} \leq \cdots \leq z ^ \left(1 \right )\)</span>; and <span class="math">\(x ^ {\left (k \right )}: 1 + \xi \left (x ^ {\left(k \right )} - \mu  \right )/ \sigma &gt;0\)</span> for <span class="math">\(k = 1,...,r\)</span> <span class="citation">(see Coles 2001, 66–72)</span>.</p>
+<p>For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract (<span class="math">\(r = 4\)</span>), and for 24-hour mean PM<sub>2.5</sub> the top 7 values were used (<span class="math">\(r = 7\)</span>).</p>
 </div>
 <div id="computation" class="section level2">
 <h2>Computation</h2>
@@ -92,6 +95,10 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="acknowledgments" class="section level2">
 <h2>Acknowledgments</h2>
 <p>We thank the the <a href="http://ephtracking.cdc.gov/showHome.action">CDC’s Environmental Public Health Tracking Program</a> for providing national downscaler data for the years 2009-2011.</p>
+<div class="references">
+<h2>References</h2>
+<p>Coles, Stuart. 2001. <em>An Introduction to Statistical Modeling of Extreme Values</em>. Springer.</p>
+</div>
 </div>
 
 

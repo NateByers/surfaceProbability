@@ -4,6 +4,7 @@ output:
   html_document:
     theme: readable
     toc: yes
+bibliography: coles.bibtex
 ---
 
 This page provides documentation for the surface probability maps used in the [NetAssessApp](https://github.com/LADCO/NetAssessApp).
@@ -31,10 +32,18 @@ Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5<
 
 ## Methods
 
-An extreme value distribution of fit for each census tract centroid in the continental United States. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract.
+An extreme value distribution was fit for each census tract centroid in the continental United States. Specifically, a joint probability density function for the $r$ largest yearly values was estimated:
+
+$$ f\left (x^{\left ( 1 \right )},...,x^{\left ( r \right )}  \right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\times \prod_{k=1}^{r}\sigma ^{-1}\left [ 1 + \xi \left ( \frac{x^{\left ( k \right )}-\mu }{\sigma}\right ) \right ]^{-\frac{1}{\xi}-1} $$
+
+where $- \infty < \mu < \infty$ and $- \infty < \xi < \infty$; $x ^ {\left (r \right )}\leq z ^ {\cdots \left (r-1 \right )} \leq \cdots \leq z ^ \left(1 \right )$; and $x ^ {\left (k \right )}: 1 + \xi \left (x ^ {\left(k \right )} - \mu  \right )/ \sigma >0$ for $k = 1,...,r$ [see @coles, pp. 66-72].
+
+For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract ($r = 4$), and for 24-hour mean PM<sub>2.5</sub> the top 7 values were used ($r = 7$).
 
 ## Computation
 
 ## Acknowledgments
 
 We thank the the [CDC's Environmental Public Health Tracking Program](http://ephtracking.cdc.gov/showHome.action) for providing national downscaler data for the years 2009-2011.
+
+## References
