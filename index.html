@@ -80,17 +80,41 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="data" class="section level2">
 <h2>Data</h2>
 <p>The surface probability maps were created by using <a href="http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html">EPA/CDC downscaler data</a>. Downscaler data are daily estimates of ground level ozone and PM<sub>2.5</sub> for every census tract in the continental US. These are statistical estimates from “fusing” photochemical modeling data and ambient monitoring data using Bayesian space-time methods. For more details on how the data were generated, see the <a href="http://www.epa.gov/nerlesd1/land-sci/lcb/pdf/DSMetadataAir_0612.pdf">meta data document</a> on the EPA website.</p>
-<p>Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5</sub> for the years 2007 and 2008 were obtained from the EPA webisite. Years 2009-2011 were obtained from the <a href="http://ephtracking.cdc.gov/showHome.action">CDC’s Environmental Public Health Tracking Program</a></p>
+<p>Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5</sub> for the years 2007 and 2008 were obtained from the <a href="http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html">EPA website</a>. Years 2009-2011 were obtained from the <a href="http://ephtracking.cdc.gov/showHome.action">CDC’s Environmental Public Health Tracking Program</a>.</p>
 </div>
 <div id="methods" class="section level2">
 <h2>Methods</h2>
-<p>An extreme value distribution was fit for each census tract centroid in the continental United States. Specifically, a joint probability density function for the <span class="math">\(r\)</span> largest yearly values was estimated:</p>
-<p><span class="math">\[ f\left (x^{\left ( 1 \right )},...,x^{\left ( r \right )}  \right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\times \prod_{k=1}^{r}\sigma ^{-1}\left [ 1 + \xi \left ( \frac{x^{\left ( k \right )}-\mu }{\sigma}\right ) \right ]^{-\frac{1}{\xi}-1} \]</span></p>
+<p>An extreme value distribution was fit for each census tract centroid in the continental United States. That is, for each census tract, yearly maxima were obtained and a distribution of those maxima was estimated.</p>
+<p>In the simplest case, an extreme value distribution would be fit using just one maximum value for each year. For example, daily precipitation values from a rain gauge over 100 years would provide about 36,500 daily values. The maximum precipition level for each year over a span of 100 years would give 100 values (each a maximum for a year), and an extreme value distribution could be estimated using those 100 values. That distribution could be used to find the probability of an extreme flood event.</p>
+<p>A generalized extreme value distribution, using just the maximum value for each year, has the following distribution function:</p>
+<p><span class="math">\[F\left (x\right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\]</span></p>
+<p>where <span class="math">\(\mu\)</span> is the location parameter, <span class="math">\(\sigma\)</span> is the scale parameter, and <span class="math">\(\xi\)</span> is the shape parameter.</p>
+<p>However, downscaler data for the entire country was only available for 5 years (2007-2011), which would not be enough data to estimate a probability distribution. For that reason, the top <span class="math">\(r\)</span> values per year were used. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract (<span class="math">\(r = 4\)</span>), and for 24-hour mean PM<sub>2.5</sub> the top 7 values were used (<span class="math">\(r = 7\)</span>). Specifically, a joint probability distribution function for the <span class="math">\(r\)</span> largest yearly values was estimated:</p>
+<p><span class="math">\[ F\left (x^{\left ( 1 \right )},...,x^{\left ( r \right )}  \right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\times \prod_{k=1}^{r}\sigma ^{-1}\left [ 1 + \xi \left ( \frac{x^{\left ( k \right )}-\mu }{\sigma}\right ) \right ]^{-\frac{1}{\xi}-1} \]</span></p>
 <p>where <span class="math">\(- \infty &lt; \mu &lt; \infty\)</span> and <span class="math">\(- \infty &lt; \xi &lt; \infty\)</span>; <span class="math">\(x ^ {\left (r \right )}\leq z ^ {\cdots \left (r-1 \right )} \leq \cdots \leq z ^ \left(1 \right )\)</span>; and <span class="math">\(x ^ {\left (k \right )}: 1 + \xi \left (x ^ {\left(k \right )} - \mu  \right )/ \sigma &gt;0\)</span> for <span class="math">\(k = 1,...,r\)</span> <span class="citation">(see Coles 2001, 66–72)</span>.</p>
-<p>For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract (<span class="math">\(r = 4\)</span>), and for 24-hour mean PM<sub>2.5</sub> the top 7 values were used (<span class="math">\(r = 7\)</span>).</p>
+<p>These distributions were then used to find the probability of an extreme value above a certain threshold for each census tract. If the threshold was 70 ppb for 8-hour maximum ozone, then the probability for each census tract is</p>
+<p><span class="math">\[P(X &gt; 70ppb) = 1 - F\left (x^{\left ( 1 \right )},...,x^{\left ( 4 \right )}  \right ).\]</span></p>
+<p>Again, this is the probability that there would be <em>at least one day in a year</em> with an 8-hour maximum ozone value above 70 ppb (not the probability that the fourth highest value would be above the threshold).</p>
 </div>
 <div id="computation" class="section level2">
 <h2>Computation</h2>
+<p>The files in the <a href="https://github.com/NateByers/surfaceProbability">surfaceProbability repository</a> titled <code>downloadDownscaler.R</code> and <code>mergeDownscaler.R</code> contain <code>R</code> code for downloading data from the EPA website and and merging it with data obtained from the <a href="http://ephtracking.cdc.gov/showHome.action">CDC’s Environmental Public Health Tracking program</a>.</p>
+<p>The probability estimates for the maps were created by fitting extreme value distributions to the downscaler data for each census tract. The file titled <code>fitEVD.R</code> contains <code>R</code> code for fitting the distributions using the <code>rlarg.fit()</code> function from the <a href="http://cran.r-project.org/web/packages/ismev/index.html"><code>ismev</code> package</a>. For example, here is a data set of yearly extrema for 8-hour ozone for a single census tract:</p>
+<pre class="r"><code>data</code></pre>
+<pre><code>##       CTFIPS Latitude Longitude   r1    r2    r3    r4 pollutant year
+## 1 1001020100    32.48    -86.49 29.4 19.02 18.28 12.48     ozone 2007
+## 2 1001020100    32.48    -86.49 35.6 31.73 25.66 33.47     ozone 2008
+## 3 1001020100    32.48    -86.49 61.8 61.70 61.30 60.60     ozone 2009
+## 4 1001020100    32.48    -86.49 75.4 73.00 68.80 68.10     ozone 2010
+## 5 1001020100    32.48    -86.49 72.5 69.00 68.40 67.10     ozone 2011</code></pre>
+<p>Here is R code for fitting the extreme value distribution and calculating the probability for a threshold of 70 ppb:</p>
+<pre class="r"><code>data &lt;- data[, paste0(&quot;r&quot;, 1:4)]
+fit &lt;- rlarg.fit(data, show = FALSE)
+prob &lt;- pgev(q = 70, loc = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3],
+             lower.tail = F)
+prob</code></pre>
+<pre><code>## [1] 0.4289</code></pre>
+<p>The file <code>makeMap.R</code> contains code for creating the map images that are used in the NetAssessApp.</p>
 </div>
 <div id="acknowledgments" class="section level2">
 <h2>Acknowledgments</h2>

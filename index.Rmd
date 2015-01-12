@@ -27,20 +27,64 @@ These maps are intended to be used as a spatial comparison and not for probabili
 
 The surface probability maps were created by using [EPA/CDC downscaler data](http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html). Downscaler data are daily estimates of ground level ozone and PM<sub>2.5</sub> for every census tract in the continental US. These are statistical estimates from "fusing" photochemical modeling data and ambient monitoring data using Bayesian space-time methods. For more details on how the data were generated, see the [meta data document](http://www.epa.gov/nerlesd1/land-sci/lcb/pdf/DSMetadataAir_0612.pdf) on the EPA website.
 
-Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5</sub> for the years 2007 and 2008 were obtained from the EPA webisite. Years 2009-2011 were obtained from the [CDC's Environmental Public Health Tracking Program](http://ephtracking.cdc.gov/showHome.action)
+Daily downscaler estimates for 8-hour maximum ozone and 24-hour mean PM<sub>2.5</sub> for the years 2007 and 2008 were obtained from the [EPA website](http://www.epa.gov/nerlesd1/land-sci/lcb/lcb_faqsd.html). Years 2009-2011 were obtained from the [CDC's Environmental Public Health Tracking Program](http://ephtracking.cdc.gov/showHome.action).
 
 
 ## Methods
 
-An extreme value distribution was fit for each census tract centroid in the continental United States. Specifically, a joint probability density function for the $r$ largest yearly values was estimated:
+An extreme value distribution was fit for each census tract centroid in the continental United States. That is, for each census tract, yearly maxima were obtained and a distribution of those maxima was estimated. 
 
-$$ f\left (x^{\left ( 1 \right )},...,x^{\left ( r \right )}  \right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\times \prod_{k=1}^{r}\sigma ^{-1}\left [ 1 + \xi \left ( \frac{x^{\left ( k \right )}-\mu }{\sigma}\right ) \right ]^{-\frac{1}{\xi}-1} $$
+In the simplest case, an extreme value distribution would be fit using just one maximum value for each year. For example, daily precipitation values from a rain gauge over 100 years would provide about 36,500 daily values. The maximum precipition level for each year over a span of 100 years would give 100 values (each a maximum for a year), and an extreme value distribution could be estimated using those 100 values. That distribution could be used to find the probability of an extreme flood event. 
+
+A generalized extreme value distribution, using just the maximum value for each year, has the following distribution function:
+
+$$F\left (x\right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}$$
+
+where $\mu$ is the location parameter, $\sigma$ is the scale parameter, and $\xi$ is the shape parameter. 
+
+However, downscaler data for the entire country was only available for 5 years (2007-2011), which would not be enough data to estimate a probability distribution. For that reason, the top $r$ values per year were used. For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract ($r = 4$), and for 24-hour mean PM<sub>2.5</sub> the top 7 values were used ($r = 7$). Specifically, a joint probability distribution function for the $r$ largest yearly values was estimated:
+
+$$ F\left (x^{\left ( 1 \right )},...,x^{\left ( r \right )}  \right )= exp\left \{ -\left [ 1 + \xi \left ( \frac{x^{\left ( r \right )}-\mu }{\sigma } \right ) \right ]^{\frac{-1}{\xi }} \right \}\times \prod_{k=1}^{r}\sigma ^{-1}\left [ 1 + \xi \left ( \frac{x^{\left ( k \right )}-\mu }{\sigma}\right ) \right ]^{-\frac{1}{\xi}-1} $$
 
 where $- \infty < \mu < \infty$ and $- \infty < \xi < \infty$; $x ^ {\left (r \right )}\leq z ^ {\cdots \left (r-1 \right )} \leq \cdots \leq z ^ \left(1 \right )$; and $x ^ {\left (k \right )}: 1 + \xi \left (x ^ {\left(k \right )} - \mu  \right )/ \sigma >0$ for $k = 1,...,r$ [see @coles, pp. 66-72].
 
-For 8-hour maximum ozone, the top 4 values per year were used to characterize the extreme values for each census tract ($r = 4$), and for 24-hour mean PM<sub>2.5</sub> the top 7 values were used ($r = 7$).
+These distributions were then used to find the probability of an extreme value above a certain threshold for each census tract. If the threshold was 70 ppb for 8-hour maximum ozone, then the probability for each census tract is 
+
+$$P(X > 70ppb) = 1 - F\left (x^{\left ( 1 \right )},...,x^{\left ( 4 \right )}  \right ).$$
+
+Again, this is the probability that there would be *at least one day in a year* with an 8-hour maximum ozone value above 70 ppb (not the probability that the fourth highest value would be above the threshold).
+
 
 ## Computation
+
+The files in the [surfaceProbability repository](https://github.com/NateByers/surfaceProbability) titled ```downloadDownscaler.R``` and ```mergeDownscaler.R``` contain ```R``` code for downloading data from the EPA website and and merging it with data obtained from the [CDC's Environmental Public Health Tracking program](http://ephtracking.cdc.gov/showHome.action). 
+
+The probability estimates for the maps were created by fitting extreme value distributions to the downscaler data for each census tract. The file titled ```fitEVD.R``` contains ```R``` code for fitting the distributions using the ```rlarg.fit()``` function from the [```ismev``` package](http://cran.r-project.org/web/packages/ismev/index.html). For example, here is a data set of yearly extrema for 8-hour ozone for a single census tract:
+
+```{r, echo=FALSE, message=FALSE}
+library(ismev)
+library(evd)
+library(data.table)
+load("CensusTractSubsets/pol_ozone_CT_1001020100.rdata")
+data <- data[order(year)]
+data <- as.data.frame(data)
+data <- data[, c(2:8, 12:13)]
+```
+```{r}
+data
+```
+
+Here is R code for fitting the extreme value distribution and calculating the probability for a threshold of 70 ppb:
+
+```{r}
+data <- data[, paste0("r", 1:4)]
+fit <- rlarg.fit(data, show = FALSE)
+prob <- pgev(q = 70, loc = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3],
+             lower.tail = F)
+prob
+```
+
+The file ```makeMap.R``` contains code for creating the map images that are used in the NetAssessApp.
 
 ## Acknowledgments
 
