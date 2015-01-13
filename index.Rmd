@@ -13,13 +13,14 @@ This page provides documentation for the surface probability maps used in the [N
 The US EPA requires state agencies to assess their air pollution monitoring networks every 5 years (40 CFR part 58.10(d)). The next network assessment is due on July 1, 2015. The [NetAssessApp](https://github.com/LADCO/NetAssessApp) was developed by [LADCO](http://www.ladco.org/) and state enironmental agencies in EPA Region 5 as a resource for doing network assessment analyses. The online tool was designed as an attempt to update the network assessment tools provided by the EPA for the last network assessment ([see EPA's site for network assessment tools and guidance](http://www.epa.gov/ttnamti1/network-assessment.html)).
 
 ## Surface Probability Maps
-One objective of the network assessment is to determine if new sites are needed. To help make that decision, it is helpful to have some estimation of the extreme pollution levels in areas where no monitors currently exist. The [NetAssessApp](https://github.com/LADCO/NetAssessApp) provides ozone and PM<sub>2.5</sub> maps of the continental US that can be used to make spatial comparisons regarding the probability of daily values exceeding a certain threshold. For example, the plot below shows the estimated probability for areas in the continental US exceeding ground level ozone levels of 75 ppb at least one day in a year (8-hour maximum):
+One objective of the network assessment is to determine if new sites are needed. In order to make that decision, it is helpful to have some estimation of the extreme pollution levels in areas where no monitors currently exist. The [NetAssessApp](https://github.com/LADCO/NetAssessApp) provides ozone and PM<sub>2.5</sub> maps of the contiguous US that can be used to make spatial comparisons regarding the probability of daily values exceeding a certain threshold. 
 
+The surface probability maps can be seen below. For ozone, three different thresholds can be selected. The PM<sub>2.5</sub> map has a threshold of 35 <font size="4">&mu;</font>g/m^3^:
+
+<iframe src="https://natebyers.shinyapps.io/shinySurfaceProb/" width="700" height="650" frameborder="0"></iframe>
 ![legend](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/probLegend.png)
-![ozone75ppb](https://raw.githubusercontent.com/LADCO/NetAssessApp/eric/www/images/o3_75.png)
 
-
-To clarify, this map does not show the probability of violating the [National Ambient Air Quality Standards (NAAQS)](http://www.epa.gov/oar/criteria.html). It provides information about the spatial distribution of the highest daily values for ground level ozone (i.e., not the probability of the 4th highest daily 8-hour maximum exceeding a threshold).
+To clarify, these maps do not show the probability of violating the [National Ambient Air Quality Standards (NAAQS)](http://www.epa.gov/oar/criteria.html). They provide information about the spatial distribution of the highest daily values for a pollutant (not, for example, the probability of the 4th highest daily 8-hour ozone maximum exceeding a threshold).
 
 These maps are intended to be used as a spatial comparison and not for probability estimates for a single geographic point or area. The probability estimates alone should not be used to justify a new monitor. The maps should be used in conjunction with existing monitoring data. If a monitor has historically measured high values, then the probability map gives an indication of areas where you would expect to observe similar extreme values. This information, along with demographic and emissions data, could be used in a weight of evidence approach for proposing new monitor locations.
 
