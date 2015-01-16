@@ -77,6 +77,8 @@ data
 Here is R code for fitting the extreme value distribution and calculating the probability for a threshold of 70 ppb:
 
 ```{r}
+library(ismev)
+library(evd)
 data <- data[, paste0("r", 1:4)]
 fit <- rlarg.fit(data, show = FALSE)
 prob <- pgev(q = 70, loc = fit$mle[1], scale = fit$mle[2], shape = fit$mle[3],
